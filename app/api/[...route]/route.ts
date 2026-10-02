@@ -55,11 +55,9 @@ app.get("/health", (c) => {
 });
 
 app.get("/coins", (c) => {
-  return c.json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    service: "hono-agent",
-  });
+  // Redirect to the canonical coin list endpoint instead of
+  // returning a duplicated /health payload.
+  return c.redirect("/api/coins/list", 307);
 });
 
 app.get("/coins/list", async (c) => {

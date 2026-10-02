@@ -5,7 +5,7 @@ import { Token } from "@/lib/constants";
 import { TOKEN_LIST_DEFAULT } from "@/lib/constants";
 
 export default function Coins() {
-  const coins = TOKEN_LIST_DEFAULT.sort((a: Token, b: Token) =>
+  const coins = [...TOKEN_LIST_DEFAULT].sort((a: Token, b: Token) =>
     a.name.localeCompare(b.name)
   );
 
@@ -17,7 +17,7 @@ export default function Coins() {
             </p> */}
         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
           {coins.map((coin: Token) => (
-            <Link key={coin.id} href={`/coins/${coin.id}`}>
+            <Link key={coin.id} href={`/${coin.id}`}>
               <img src={coin.logo} alt={coin.name} />
               <p>{coin.name}</p>
               <p>{coin.symbol}</p>

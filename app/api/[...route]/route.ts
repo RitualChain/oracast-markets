@@ -55,11 +55,8 @@ app.get("/health", (c) => {
 });
 
 app.get("/coins", (c) => {
-  return c.json({
-    status: "healthy",
-    timestamp: new Date().toISOString(),
-    service: "hono-agent",
-  });
+  // Redirect to /coins/list for correct payload
+  return c.redirect("/api/coins/list", 308);
 });
 
 app.get("/coins/list", async (c) => {

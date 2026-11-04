@@ -12,18 +12,18 @@ export default function Coins() {
   return (
     <section className="w-full py-12 md:py-24 lg:py-32">
       <div className="flex flex-col items-center justify-center px-4 md:px-6 space-y-4">
-        {/* <p className="max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
-              Here is the response to your API call:
-            </p> */}
         <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
+          Coins
+        </h1>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 w-full max-w-4xl">
           {coins.map((coin: Token) => (
-            <Link key={coin.id} href={`/coins/${coin.id}`}>
-              <img src={coin.logo} alt={coin.name} />
-              <p>{coin.name}</p>
-              <p>{coin.symbol}</p>
+            <Link key={coin.id} href={`/coins/${coin.id}`} className="border rounded-lg p-4 hover:shadow-md transition">
+              <img src={coin.logo} alt={coin.name} className="w-10 h-10 mb-2" />
+              <p className="font-semibold">{coin.name}</p>
+              <p className="text-sm text-gray-500">{coin.symbol}</p>
             </Link>
           ))}
-        </h1>
+        </div>
       </div>
     </section>
   );

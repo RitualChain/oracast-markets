@@ -146,6 +146,25 @@ function calculateForecast(price: number, volatilityPct: number, direction: numb
   return { mean: forecastMean, low: forecastLow, high: forecastHigh };
 }
 
+// Convert a float into a fixed-point bigint scaled by 10^decimals.
+// Using `Math.round(value * 1e6) * 1e12` truncates sub-1e-6 prices to zero and
+// accumulates floating point error for large volumes. Parsing the decimal
+// string keeps full 18-decimal precision for both tiny and large values.
+function toScaledBigInt(value: number, decimals: number = 18): bigint {
+  if (!Number.isFinite(value)) {
+    throw new Error("Cannot scale non-finite value");
+  }
+  // toFixed switches to exponential notation above 1e21, so fall back to rounding.
+  if (Math.abs(value) >= 1e21) {
+    return BigInt(Math.round(value));
+  }
+  const negative = value < 0;
+  const [intPart, fracPart = ""] = Math.abs(value).toFixed(decimals).split(".");
+  const digits = `${intPart}${fracPart.padEnd(decimals, "0")}`.replace(/^0+(?=\d)/, "");
+  const result = BigInt(digits || "0");
+  return negative ? -result : result;
+}
+
 // Optimized backtesting using market_chart API (single call, more reliable)
 async function performBacktest(id: string, currentPrice: number, horizonDays: number = 60) {
   try {
@@ -383,24 +402,21 @@ async function fetchCoinData(input: string, useCache: boolean = true) {
   }
 
   // Scale to 1e18 & encode as uint256s
-  const SCALE = BigInt("1000000000000000000"); // 10^18
-  const ONE_MILLION = BigInt(1000000);
-
-  const priceRaw = BigInt(Math.round(priceUsdFloat * 1e6)) * (SCALE / ONE_MILLION);
-  const volumeRaw = BigInt(Math.round(volumeUsdFloat * 1e6)) * (SCALE / ONE_MILLION);
+  const priceRaw = toScaledBigInt(priceUsdFloat);
+  const volumeRaw = toScaledBigInt(volumeUsdFloat);
 
   // Direction: 1 for positive, 0 for negative (determined before taking absolute value)
   const direction = volPctFloat >= 0 ? 1 : 0;
 
   // Use absolute value for volatility (magnitude only, unsigned)
   const volatilityMagnitude = Math.abs(volPctFloat);
-  const volatilityRaw = BigInt(Math.round(volatilityMagnitude * 1e6)) * (SCALE / ONE_MILLION);
+  const volatilityRaw = toScaledBigInt(volatilityMagnitude);
 
   // Calculate forecast using helper function
   const forecast = calculateForecast(priceUsdFloat, volPctFloat, direction);
-  const forecastMeanRaw = BigInt(Math.round(forecast.mean * 1e6)) * (SCALE / ONE_MILLION);
-  const forecastLowRaw = BigInt(Math.round(forecast.low * 1e6)) * (SCALE / ONE_MILLION);
-  const forecastHighRaw = BigInt(Math.round(forecast.high * 1e6)) * (SCALE / ONE_MILLION);
+  const forecastMeanRaw = toScaledBigInt(forecast.mean);
+  const forecastLowRaw = toScaledBigInt(forecast.low);
+  const forecastHighRaw = toScaledBigInt(forecast.high);
 
   // Perform 7-day backtesting (only if using primary API, or if we implement backup backtest)
   // If using backup, backtest will likely fail on CoinGecko anyway, so we skip it or let it return null
